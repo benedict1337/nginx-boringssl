@@ -70,6 +70,8 @@ jobs:
           file: ${{ matrix.build-file.file }}
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            BUILD=${{ github.sha }}-${{ steps.meta.outputs.version }}
           tags: |
             ${{ env.GHCR_IMAGE }}
             ${{ env.DOCKER_IMAGE }}

@@ -2,7 +2,7 @@
 
 A **lightweight NGINX Docker image** built with **BoringSSL**, optimized for modern web protocols, high performance, and enhanced security.  
 
-![Docker Pulls](https://img.shields.io/docker/pulls/benedicthu/nginx-quictls) ![Docker Image Size](https://img.shields.io/docker/image-size/benedicthu/nginx-quictls/boringssl-test) [![GPLv3 License](https://img.shields.io/badge/License-GPL%20v3-yellow.svg)](https://opensource.org/licenses/) ![HTTP/3](https://img.shields.io/badge/HTTP-3-4CAF50)
+![Docker Pulls](https://img.shields.io/docker/pulls/benedicthu/nginx-boringssl) ![Docker Image Size](https://img.shields.io/docker/image-size/benedicthu/nginx-boringssl/latest) [![GPLv3 License](https://img.shields.io/badge/License-GPL%20v3-yellow.svg)](https://opensource.org/licenses/) ![HTTP/3](https://img.shields.io/badge/HTTP-3-4CAF50)
 
 ---
 
