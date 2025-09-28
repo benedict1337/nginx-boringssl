@@ -149,7 +149,6 @@ jobs:
             ${{ env.GHCR_IMAGE }}
           tags: |
             type=raw,value=latest${{ matrix.build-file.suffix }},priority=1000
-            type=ref,event=branch,suffix=${{ matrix.build-file.suffix }}
 
       - name: Create manifest list and push
         working-directory: ${{ runner.temp }}/digests${{ matrix.build-file.suffix }}
