@@ -149,13 +149,16 @@ jobs:
           tags: |
             type=raw,value=latest${{ matrix.build-file.suffix }},priority=1000
 
+      - name: Debug digests
+        run: ls -l ${{ runner.temp }}/digests${{ matrix.build-file.suffix }}
+
       - name: Create manifest list and push
         working-directory: ${{ runner.temp }}/digests${{ matrix.build-file.suffix }}
         run: |
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf '${{ env.GHCR_IMAGE }}@sha256:%s ' *)
+            $(printf '${{ env.GHCR_IMAGE }}@sha256:%s ' $digests)
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf '${{ env.DOCKER_IMAGE }}@sha256:%s ' *)
+            $(printf '${{ env.DOCKER_IMAGE }}@sha256:%s ' $digests)
 
       - name: Inspect image
         run: |
