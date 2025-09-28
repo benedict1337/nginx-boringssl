@@ -72,9 +72,6 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             BUILD=${{ github.sha }}-${{ steps.meta.outputs.version }}
-          tags: |
-            ${{ env.GHCR_IMAGE }}
-            ${{ env.DOCKER_IMAGE }}
           cache-from: |
             type=registry,ref=${{ env.GHCR_IMAGE }}:cache${{ matrix.build-file.suffix }}
             type=registry,ref=${{ env.DOCKER_IMAGE }}:cache${{ matrix.build-file.suffix }}
