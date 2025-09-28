@@ -9,7 +9,7 @@ A **lightweight NGINX Docker image** built with **BoringSSL**, optimized for mod
 ## ✨ Key Features
 
 - 🔐 **BoringSSL** for enhanced security  
-- 🚀 **HTTP/3 (QUIC)** and **0-RTT** support for faster connections  
+- 🚀 **HTTP/3 (QUIC)** support for faster connections  
 - ⚡ Dynamic **TLS record patching**  
 - 📦 **Brotli compression** for optimized content delivery  
 - 🌍 **GeoIP2** support for geolocation-based features  
@@ -31,7 +31,7 @@ docker run -d \
   -p 443:443 \
   -p 443:443/udp \
   -v nginx-config:/etc/nginx \
-  benedicthu/nginx-quictls:boringssl-test
+  benedicthu/nginx-boringssl
 ```
 
 ### Using Docker Compose
@@ -39,8 +39,8 @@ docker run -d \
 version: '3.9'
 
 services:
-  nginx-quictls:
-    image: benedicthu/nginx-quictls:boringssl-test
+  nginx-boringssl:
+    image: benedicthu/nginx-boringssl
     volumes:
       - 'nginx-config:/etc/nginx'
     ports:
