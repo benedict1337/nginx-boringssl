@@ -156,11 +156,17 @@ jobs:
         working-directory: ${{ runner.temp }}/digests${{ matrix.build-file.suffix }}
         run: |
           digests=$(find . -type f -exec basename {} \;)
-          echo "Merging digests:"
+          echo "Creating GHCR manifest with digests:"
           echo "$digests"
-          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf '${{ env.GHCR_IMAGE }}@sha256:%s ' $digests)
-          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+          docker buildx imagetools create \
+            $(jq -cr '.tags | map(select(test("^ghcr.io/")) | "-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            $(printf 'ghcr.io/benedict1337/nginx-boringssl@sha256:%s ' $digests)
+
+          digests=$(find . -type f -exec basename {} \;)
+          echo "Creating Docker Hub manifest with digests:"
+          echo "$digests"
+          docker buildx imagetools create \
+            $(jq -cr '.tags | map(select(test("^'"${{ env.DOCKER_IMAGE }}"'")) | "-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
             $(printf '${{ env.DOCKER_IMAGE }}@sha256:%s ' $digests)
 
       - name: Inspect image
