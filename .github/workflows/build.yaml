@@ -63,8 +63,24 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push by digest
-        id: build
+      - name: Build and push by digest (Docker-HUB)
+        id: build-docker
+        uses: docker/build-push-action@v6
+        with:
+          file: ${{ matrix.build-file.file }}
+          platforms: ${{ matrix.platform }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            BUILD=${{ github.sha }}-${{ steps.meta.outputs.version }}
+          cache-from: |
+            type=registry,ref=${{ env.DOCKER_IMAGE }}:cache${{ matrix.build-file.suffix }}
+          cache-to: |
+            type=registry,ref=${{ env.DOCKER_IMAGE }}:cache${{ matrix.build-file.suffix }},mode=max
+          outputs: |
+            type=image,name=${{ env.DOCKER_IMAGE }},push-by-digest=true,name-canonical=true,push=true
+
+      - name: Build and push by digest (GHCR)
+        id: build-ghcr
         uses: docker/build-push-action@v6
         with:
           file: ${{ matrix.build-file.file }}
@@ -74,13 +90,10 @@ jobs:
             BUILD=${{ github.sha }}-${{ steps.meta.outputs.version }}
           cache-from: |
             type=registry,ref=${{ env.GHCR_IMAGE }}:cache${{ matrix.build-file.suffix }}
-            type=registry,ref=${{ env.DOCKER_IMAGE }}:cache${{ matrix.build-file.suffix }}
           cache-to: |
             type=registry,ref=${{ env.GHCR_IMAGE }}:cache${{ matrix.build-file.suffix }},mode=max
-            type=registry,ref=${{ env.DOCKER_IMAGE }}:cache${{ matrix.build-file.suffix }},mode=max
           outputs: |
             type=image,name=${{ env.GHCR_IMAGE }},push-by-digest=true,name-canonical=true,push=true
-            type=image,name=${{ env.DOCKER_IMAGE }},push-by-digest=true,name-canonical=true,push=true
 
       - name: Set PLATFORM env variable
         id: platform-var
@@ -89,16 +102,19 @@ jobs:
           PLATFORM="${PLATFORM//\//-}"
           echo "PLATFORM=$PLATFORM" >> $GITHUB_ENV
 
-      - name: Show PLATFORM
-        run: echo "Platform is $PLATFORM ${{ env.PLATFORM }}"
-
-      - name: Export digest
+      - name: Export digests (Docker-HUB)
         run: |
-          mkdir -p ${{ runner.temp }}/digests${{ matrix.build-file.suffix }}
-          digest="${{ steps.build.outputs.digest }}"
-          touch "${{ runner.temp }}/digests${{ matrix.build-file.suffix }}/${digest#sha256:}"
+          mkdir -p ${{ runner.temp }}/digests${{ matrix.build-file.suffix }}/docker
+          digests="${{ steps.build-docker.outputs.digest }}"
+          touch "${{ runner.temp }}/digests${{ matrix.build-file.suffix }}/docker/${digests#sha256:}"
 
-      - name: Upload digest
+      - name: Export digests (GHCR)
+        run: |
+          mkdir -p ${{ runner.temp }}/digests${{ matrix.build-file.suffix }}/ghcr
+          digests="${{ steps.build-ghcr.outputs.digest }}"
+          touch "${{ runner.temp }}/digests${{ matrix.build-file.suffix }}/ghcr/${digests#sha256:}"
+
+      - name: Upload digests
         uses: actions/upload-artifact@v4
         with:
           name: digests${{ matrix.build-file.suffix }}-${{ env.PLATFORM }}
@@ -149,25 +165,23 @@ jobs:
           tags: |
             type=raw,value=latest${{ matrix.build-file.suffix }},priority=1000
 
-      - name: Debug digests
-        run: ls -l ${{ runner.temp }}/digests${{ matrix.build-file.suffix }}
-
-      - name: Create manifest list and push
-        working-directory: ${{ runner.temp }}/digests${{ matrix.build-file.suffix }}
+      - name: Create manifest list and push (Docker-HUB)
+        working-directory: ${{ runner.temp }}/digests${{ matrix.build-file.suffix }}/docker
         run: |
           digests=$(find . -type f -exec basename {} \;)
-          echo "Creating GHCR manifest with digests:"
+          echo "Merging digests:"
           echo "$digests"
-          docker buildx imagetools create \
-            $(jq -cr '.tags | map(select(test("^ghcr.io/")) | "-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf 'ghcr.io/benedict1337/nginx-boringssl@sha256:%s ' $digests)
-
-          digests=$(find . -type f -exec basename {} \;)
-          echo "Creating Docker Hub manifest with digests:"
-          echo "$digests"
-          docker buildx imagetools create \
-            $(jq -cr '.tags | map(select(test("^'"${{ env.DOCKER_IMAGE }}"'")) | "-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
             $(printf '${{ env.DOCKER_IMAGE }}@sha256:%s ' $digests)
+
+      - name: Create manifest list and push (GHCR)
+        working-directory: ${{ runner.temp }}/digests${{ matrix.build-file.suffix }}/ghcr
+        run: |
+          digests=$(find . -type f -exec basename {} \;)
+          echo "Merging digests:"
+          echo "$digests"
+          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            $(printf '${{ env.GHCR_IMAGE }}@sha256:%s ' $digests)
 
       - name: Inspect image
         run: |
