@@ -166,6 +166,7 @@ COPY assets/index.html /etc/nginx/html/index.html
 
 RUN addgroup -S nginx \
     && adduser -D -S -h /var/cache/nginx -s /sbin/nologin -G nginx nginx
+
 RUN apk add --no-cache \
     ca-certificates \
     tzdata \
@@ -182,6 +183,7 @@ RUN apk add --no-cache \
     libcurl \
     geoip \
     libmaxminddb-libs 
+    
 RUN mkdir -p /var/log/nginx/ \
     && mkdir -p /etc/nginx/modsec \
     && touch /var/log/nginx/access.log \

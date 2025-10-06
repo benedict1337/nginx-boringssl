@@ -3,7 +3,7 @@ name: NGINX-BoringSSL (Update versions)
 on:
   push:
     branches:
-      - latest
+      - main
     paths:
       - Dockerfile
       - Dockerfile.modsec
