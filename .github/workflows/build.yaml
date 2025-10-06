@@ -33,6 +33,13 @@ jobs:
           - linux/arm/v6
 
     steps:
+      - name: Set PLATFORM env variable
+        id: platform-var
+        run: |
+          PLATFORM="${{ matrix.platform }}"
+          PLATFORM="${PLATFORM//\//-}"
+          echo "PLATFORM=$PLATFORM" >> $GITHUB_ENV
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -84,13 +91,6 @@ jobs:
           outputs: |
             type=image,name=${{ env.DOCKER_IMAGE }},push-by-digest=true,name-canonical=true,push=true
             type=image,name=${{ env.GHCR_IMAGE }},push-by-digest=true,name-canonical=true,push=true
-
-      - name: Set PLATFORM env variable
-        id: platform-var
-        run: |
-          PLATFORM="${{ matrix.platform }}"
-          PLATFORM="${PLATFORM//\//-}"
-          echo "PLATFORM=$PLATFORM" >> $GITHUB_ENV
 
       - name: Export digests
         run: |
