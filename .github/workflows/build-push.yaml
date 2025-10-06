@@ -1,4 +1,4 @@
-name: NGINX-BoringSSL (all builds)
+name: NGINX-BoringSSL Build and Push
 
 on:
   push:
@@ -25,7 +25,7 @@ jobs:
       matrix:
         build-file:
           - { file: Dockerfile, suffix: "" }
-          - { file: Dockerfile.modsec, suffix: "-modsec" }
+          - { file: Dockerfile.modsec, suffix: "-nonmodsec" }
         platform:
           - linux/amd64
           - linux/arm64
@@ -113,10 +113,10 @@ jobs:
       matrix:
         build-file:
           - { file: Dockerfile, suffix: "" }
-          - { file: Dockerfile.modsec, suffix: "-modsec" }
+          - { file: Dockerfile.modsec, suffix: "-nonmodsec" }
 
     steps:
-      - name: Download digests (Docker)
+      - name: Download digests
         uses: actions/download-artifact@v4
         with:
           path: ${{ runner.temp }}/digests${{ matrix.build-file.suffix }}
@@ -149,16 +149,11 @@ jobs:
           tags: |
             type=raw,value=latest${{ matrix.build-file.suffix }},priority=1000
 
-      - name: Create manifest list and push (Docker)
+      - name: Create manifest list and push
         working-directory: ${{ runner.temp }}/digests${{ matrix.build-file.suffix }}
         run: |
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf '${{ env.DOCKER_IMAGE }}@sha256:%s ' *)
-
-      - name: Create manifest list and push (GHCR)
-        working-directory: ${{ runner.temp }}/digests${{ matrix.build-file.suffix }}
-        run: |
-          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            $(printf '${{ env.DOCKER_IMAGE }}@sha256:%s ' *) \
             $(printf '${{ env.GHCR_IMAGE }}@sha256:%s ' *)
 
       - name: Inspect image

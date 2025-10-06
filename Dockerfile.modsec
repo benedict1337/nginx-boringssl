@@ -158,7 +158,6 @@ RUN mkdir -p /var/log/nginx/ \
     && sed -i "s|#load_module modules/ngx_http_modsecurity_module.so;||g" /etc/nginx/nginx.conf 
 
 LABEL maintainer="Bence Kócsi <info@benedict-system.eu>"
-
 EXPOSE 80 443 443/udp
 
 ENTRYPOINT ["tini", "--", "nginx"]
