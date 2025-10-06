@@ -64,12 +64,15 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push by digests
-        id: build-docker
+        id: build
         uses: docker/build-push-action@v6
         with:
           file: ${{ matrix.build-file.file }}
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
+          tags: |
+           ${{ env.DOCKER_IMAGE }}
+           ${{ env.GHCR_IMAGE}}
           build-args: |
             BUILD=${{ github.sha }}-${{ steps.meta.outputs.version }}
           cache-from: |
@@ -92,7 +95,7 @@ jobs:
       - name: Export digests
         run: |
           mkdir -p ${{ runner.temp }}/digests${{ matrix.build-file.suffix }}
-          digests="${{ steps.build-docker.outputs.digest }}"
+          digests="${{ steps.build.outputs.digest }}"
           touch "${{ runner.temp }}/digests${{ matrix.build-file.suffix }}/${digests#sha256:}"
 
       - name: Upload digests
@@ -113,13 +116,13 @@ jobs:
           - { file: Dockerfile.modsec, suffix: "-modsec" }
 
     steps:
-      - name: Download digests
+      - name: Download digests (Docker)
         uses: actions/download-artifact@v4
         with:
           path: ${{ runner.temp }}/digests${{ matrix.build-file.suffix }}
           pattern: digests${{ matrix.build-file.suffix }}-*
           merge-multiple: true
-          
+      
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -146,17 +149,17 @@ jobs:
           tags: |
             type=raw,value=latest${{ matrix.build-file.suffix }},priority=1000
 
-      - name: Create manifest list and push (both registries)
+      - name: Create manifest list and push (Docker)
         working-directory: ${{ runner.temp }}/digests${{ matrix.build-file.suffix }}
         run: |
-          digests=$(find . -type f -exec basename {} \;)
-          echo "Merging digests:"
-          echo "$digests"
-          for registry in "${{ env.DOCKER_IMAGE }}" "${{ env.GHCR_IMAGE }}"; do
-            echo "Creating manifest for $registry"
-            docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-              $(printf "$registry@sha256:%s " $digests)
-          done
+          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            $(printf '${{ env.DOCKER_IMAGE }}@sha256:%s ' *)
+
+      - name: Create manifest list and push (GHCR)
+        working-directory: ${{ runner.temp }}/digests${{ matrix.build-file.suffix }}
+        run: |
+          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            $(printf '${{ env.GHCR_IMAGE }}@sha256:%s ' *)
 
       - name: Inspect image
         run: |
