@@ -196,6 +196,7 @@ COPY --from=build /src/modsecurity-crs /etc/nginx/modsec/modsecurity-crs
 COPY --from=build /src/ModSecurity/owasp-crs_main.conf /etc/nginx/modsec/owasp-crs_main.conf
 
 LABEL maintainer="Bence Kócsi <info@benedict-system.eu>"
+
 EXPOSE 80 443 443/udp
 
 ENTRYPOINT ["tini", "--", "nginx"]
