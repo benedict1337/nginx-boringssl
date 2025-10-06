@@ -76,11 +76,11 @@ jobs:
           build-args: |
             BUILD=${{ github.sha }}-${{ steps.meta.outputs.version }}
           cache-from: |
-            type=registry,ref=${{ env.DOCKER_IMAGE }}:cache${{ matrix.build-file.suffix }}
-            type=registry,ref=${{ env.GHCR_IMAGE }}:cache${{ matrix.build-file.suffix }}
+            type=registry,ref=${{ env.DOCKER_IMAGE }}:cache${{ matrix.build-file.suffix }}-${{ env.PLATFORM }}
+            type=registry,ref=${{ env.GHCR_IMAGE }}:cache${{ matrix.build-file.suffix }}-${{ env.PLATFORM }}
           cache-to: |
-            type=registry,ref=${{ env.DOCKER_IMAGE }}:cache${{ matrix.build-file.suffix }},mode=max
-            type=registry,ref=${{ env.GHCR_IMAGE }}:cache${{ matrix.build-file.suffix }},mode=max
+            type=registry,ref=${{ env.DOCKER_IMAGE }}:cache${{ matrix.build-file.suffix }}-${{ env.PLATFORM }},mode=max
+            type=registry,ref=${{ env.GHCR_IMAGE }}:cache${{ matrix.build-file.suffix }}-${{ env.PLATFORM }},mode=max
           outputs: |
             type=image,name=${{ env.DOCKER_IMAGE }},push-by-digest=true,name-canonical=true,push=true
             type=image,name=${{ env.GHCR_IMAGE }},push-by-digest=true,name-canonical=true,push=true
