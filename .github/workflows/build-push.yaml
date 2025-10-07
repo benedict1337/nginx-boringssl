@@ -116,6 +116,9 @@ jobs:
           - { file: Dockerfile.nonmodsec, suffix: "-nonmodsec" }
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Extract NGINX mainline version
         id: nginx-ver
         run: |
@@ -126,19 +129,6 @@ jobs:
           fi
           echo "NGX_MAINLINE_VER=$ver" >> $GITHUB_ENV
           echo "version=$ver" >> $GITHUB_OUTPUT
-
-      - name: Create Git tag and release
-        if: ${{ github.ref == 'refs/heads/main' }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          tag="v${{ env.NGX_MAINLINE_VER }}"
-          echo "📦 Creating release for $tag"
-          if gh release view "$tag" >/dev/null 2>&1; then
-            echo "ℹ️ Release $tag already exists. Skipping."
-          else
-            gh release create "$tag" --title "NGINX ${{ env.NGX_MAINLINE_VER }}" --notes "Automated build for NGINX ${{ env.NGX_MAINLINE_VER }}"
-          fi
 
       - name: Download digests
         uses: actions/download-artifact@v4
@@ -186,3 +176,16 @@ jobs:
         run: |
           docker buildx imagetools inspect ${{ env.GHCR_IMAGE }}:${{ steps.meta.outputs.version }}
           docker buildx imagetools inspect ${{ env.DOCKER_IMAGE }}:${{ steps.meta.outputs.version }}
+
+      - name: Create Git tag and release
+        if: ${{ github.ref == 'refs/heads/main' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag="v${{ env.NGX_MAINLINE_VER }}"
+          echo "📦 Creating release for $tag"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "ℹ️ Release $tag already exists. Skipping."
+          else
+            gh release create "$tag" --title "NGINX ${{ env.NGX_MAINLINE_VER }}" --notes "Automated build for NGINX ${{ env.NGX_MAINLINE_VER }}"
+          fi
