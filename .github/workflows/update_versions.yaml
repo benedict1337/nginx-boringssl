@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - Dockerfile
-      - Dockerfile.modsec
+      - Dockerfile.nonmodsec
   schedule:
     - cron: "0 0 * * *"
 
@@ -47,7 +47,7 @@ jobs:
 
           echo "VER=$VER" >> $GITHUB_OUTPUT
           sed -i "s|ARG ${{ matrix.dep.var }}=.*|ARG ${{ matrix.dep.var }}=${VER}|g" Dockerfile
-          sed -i "s|ARG ${{ matrix.dep.var }}=.*|ARG ${{ matrix.dep.var }}=${VER}|g" Dockerfile.modsec || true
+          sed -i "s|ARG ${{ matrix.dep.var }}=.*|ARG ${{ matrix.dep.var }}=${VER}|g" Dockerfile.nonmodsec || true
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
