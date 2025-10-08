@@ -117,6 +117,7 @@ RUN cd /src/nginx \
         --with-file-aio \
         --with-libatomic \
         --with-pcre \
+        --with-pcre-jit \
         --without-poll_module \
         --without-select_module \
         --with-openssl="/src/boringssl" \
