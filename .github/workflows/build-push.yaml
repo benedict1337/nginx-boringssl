@@ -131,7 +131,7 @@ jobs:
           echo "version=$ver" >> $GITHUB_OUTPUT
 
       - name: Download digests
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           path: ${{ runner.temp }}/digests${{ matrix.build-file.suffix }}
           pattern: digests${{ matrix.build-file.suffix }}-linux-*
