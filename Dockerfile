@@ -2,15 +2,15 @@ FROM alpine:latest AS build
 
 ARG BUILD
 
-ARG NGX_MAINLINE_VER=1.29.1
+ARG NGX_MAINLINE_VER=1.29.2
 ARG BORINGSSL_VER=main
 ARG MODSEC_VER=v3.0.14
 ARG NGX_BROTLI=master
 ARG NGX_HEADERS_MORE=v0.39
-ARG NGX_NJS=0.9.2
+ARG NGX_NJS=0.9.3
 ARG NGX_MODSEC=v1.0.4
 ARG NGX_GEOIP2=3.4
-ARG NGX_TLS_DYN_SIZE=nginx__dynamic_tls_records_1.27.5+.patch
+ARG NGX_TLS_DYN_SIZE=nginx__dynamic_tls_records_1.29.2+.patch
 
 WORKDIR /src
 
@@ -117,6 +117,7 @@ RUN cd /src/nginx \
         --with-file-aio \
         --with-libatomic \
         --with-pcre \
+        --with-pcre-jit \
         --without-poll_module \
         --without-select_module \
         --with-openssl="/src/boringssl" \
